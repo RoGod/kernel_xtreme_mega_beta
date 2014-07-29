@@ -90,6 +90,8 @@ obj-$(CONFIG_MACH_M0_CTC)   += cw_tty.o
 obj-$(CONFIG_MOBICORE_SUPPORT)  += tzic.o
 obj-$(CONFIG_MOBICORE_DRIVER)  += tzic.o
 
+# Touchwake
+obj-$(CONFIG_TOUCH_WAKE)        += touch_wake.o
 ifeq ($(TIMA_ENABLED),1)
 obj-$(CONFIG_TIMA_LOG)		+= tima_debug_log.o
 endif
