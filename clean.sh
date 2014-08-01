@@ -1,7 +1,7 @@
 #!/bin/bash
 
 TOOLCHAIN="/home/rogod/android-ndk-r8e/toolchains/arm-linux-androideabi-4.7/prebuilt/linux-x86/bin/arm-linux-androideabi-"
-DIR="/home/rogod/Kernel/GT-I9300"
+DIR="/home/rogod/android/Kernel"
 NR_CPUS=$(expr `grep processor /proc/cpuinfo | wc -l` + 1);
 
 echo "#################### Eliminando Restos ####################"
