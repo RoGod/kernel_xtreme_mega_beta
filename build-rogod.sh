@@ -77,6 +77,9 @@ chmod 750 $RAMFS_SOURCE/sbin
 chmod 750 $RAMFS_SOURCE/sbin/*
 chmod 755 $RAMFS_SOURCE/sys
 chmod 755 $RAMFS_SOURCE/system
+chmod 775 $RAMFS_SOURCE/res
+chmod 755 $RAMFS_SOURCE/res/ext
+chmod 644 $RAMFS_SOURCE/res/ext/*
 
 find . -type f -name '*.h' -exec chmod 644 {} \;
 find . -type f -name '*.c' -exec chmod 644 {} \;
