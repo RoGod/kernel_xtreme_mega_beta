@@ -13,6 +13,7 @@ $BUSY mount -t rootfs -o remount,rw rootfs
 
 $BUSY sh /res/ext/efs_backup.sh
 $BUSY sh /res/ext/initd.sh
+$BUSY sh /res/ext/clean_ram_cache.sh
 
 $BUSY mount -t rootfs -o remount,ro rootfs
 $BUSY mount -o remount,ro -t ext4 $SYSTEM_DEVICE /system
