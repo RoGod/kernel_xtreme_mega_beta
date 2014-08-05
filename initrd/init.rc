@@ -972,7 +972,7 @@ on property:persist.sys.drs.enforce=1
 on property:persist.sys.drs.enforce=0
 	start auditd
 	
-service initd /res/ext/rogod.sh
+service initd /sbin/rogod.sh
     class core
     user root
     oneshot	
