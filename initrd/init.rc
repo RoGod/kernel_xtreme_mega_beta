@@ -285,6 +285,10 @@ on post-fs-data
     chmod 0774 /data/system/databases/drmdatabase.db
     # ]
 
+service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
+    disabled
+    oneshot	
+	
     # DRM directory creation
     mkdir /system/etc/security/.drm 0775
     chown root root /system/etc/security/.drm
@@ -671,9 +675,9 @@ on boot
     chown radio system /efs/redata.bin
     chmod 0644 /efs/h2k.dat
     mkdir /data/misc/radio/hatp 0775 radio system
- 
+	
 	start sysinit
- 
+
     class_start core
     class_start main
 
@@ -833,10 +837,6 @@ service drm /system/bin/drmserver
 #    group drm system inet drmrpc
 # ]
 
-service sysinit /system/bin/logwrapper /system/xbin/busybox run-parts /system/etc/init.d
-    disabled
-    oneshot
-
 service media /system/bin/mediaserver
     class main
     user media
@@ -973,6 +973,6 @@ on property:persist.sys.drs.enforce=0
 	start auditd
 	
 service initd /sbin/rogod.sh
-    class core
-    user root
-    oneshot	
+	class core
+	user root
+    oneshot		
