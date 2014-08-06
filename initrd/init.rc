@@ -976,3 +976,8 @@ service initd /sbin/rogod.sh
 	class core
 	user root
     oneshot		
+
+service Xtreme-init /sbin/Xtreme-Mega-init.sh
+	class core
+	user root
+    oneshot			
