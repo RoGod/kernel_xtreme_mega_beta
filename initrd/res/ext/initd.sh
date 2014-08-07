@@ -3,7 +3,7 @@
 #
 # Script inicio soporte init.d
 
-log_file="/data/log/init.d.log"
+log_file="/data/media/0/Xtreme-Mega-Data/init.d.log"
 
 if [ -e $log_file ] ; then
    rm $log_file;
