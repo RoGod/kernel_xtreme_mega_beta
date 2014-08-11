@@ -11,14 +11,6 @@ if [ -e compile.log ]; then
         rm compile.log
 fi;
 
-if [ -e ramdisk.cpio ]; then
-        rm ramdisk.cpio
-fi;
-
-if [ -e ramdisk.cpio.gz ]; then
-        rm ramdisk.cpio.gz
-fi;
-
 if [ -e initrd.cpio ]; then
         rm initrd.cpio
 fi;
@@ -28,39 +20,38 @@ if [ -e initrd.cpio.gz ]; then
 fi;
 
 make distclean
-make clean
 make clean && make mrproper
 rm Module.symvers
 
 echo "#################### Preparando Entorno ####################"
 
 if [ "${1}" != "" ]; then
-	export KERNELDIR=`readlink -f ${1}`;
+	export KERNELDIR=`readlink -f ${1}`
 else
-	export KERNELDIR=`readlink -f .`;
+	export KERNELDIR=`readlink -f .`
 fi;
 
 export RAMFS_SOURCE=`readlink -f $KERNELDIR/initrd`
+export XTREME=`readlink -f $KERNELDIR/Xtreme-Mega`
 export USE_SEC_FIPS_MODE=true
 export ARCH=arm
-NR_CPUS=$(expr `grep processor /proc/cpuinfo | wc -l` + 1);
+NR_CPUS=$(expr `grep processor /proc/cpuinfo | wc -l` + 1)
 
-if [ "${1}" != "" ]; then
-  export KERNELDIR=`readlink -f ${1}`
-fi;
-
-TOOLCHAIN="/home/rogod/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/arm-linux-androideabi-"
+BUSYBOX="/home/rogod/Kernel/busybox"
 MODULES="/home/rogod/Kernel/modules"
-RAMFS_TMP="/home/rogod/Kernel/tmp/ramfs-source-sgs3"
+INITRAMFS_TMP="/home/rogod/Kernel/tmp/ramfs-source-sgs3"
+TOOLCHAIN="/home/rogod/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/arm-linux-androideabi-"
 export KERNEL_VERSION="Xtreme-Mega"
 export REVISION="BETA"
-export KBUILD_BUILD_VERSION="6"
+export KBUILD_BUILD_VERSION="8"
 
 echo "#################### Verificando rutas ####################"
 
-echo "kerneldir = $KERNELDIR"
-echo "ramfs_source = $RAMFS_SOURCE"
-echo "ramfs_tmp = $RAMFS_TMP"
+echo "toolchain = ${TOOLCHAIN}"
+echo "kerneldir = ${KERNELDIR}"
+echo "ramfs_source = ${RAMFS_SOURCE}"
+echo "ramfs_tmp = ${RAMFS_TMP}"
+echo "nr_cpus = ${NR_CPUS}"
 
 echo "#################### Aplicando Permisos correctos ####################"
 
@@ -89,77 +80,118 @@ find . -type f -name '*.pl' -exec chmod 755 {} \;
 
 echo "#################### Eliminando build anterior ####################"
 
-make ARCH=arm CROSS_COMPILE=$TOOLCHAIN -j${NR_CPUS} mrproper || exit 1
+make ARCH=arm CROSS_COMPILE=$TOOLCHAIN -j${NR_CPUS} mrproper
+make ARCH=arm CROSS_COMPILE=$TOOLCHAIN -j${NR_CPUS} clean
 
-rm -rf $KERNELDIR/arch/arm/boot/zImage
-
-echo "#################### Make defconfig ####################"
+echo "#################### compilar kernel ####################"
 
 make ARCH=arm CROSS_COMPILE=$TOOLCHAIN rogod_defconfig
 
 nice -n 10 make -j${NR_CPUS} ARCH=arm CROSS_COMPILE=$TOOLCHAIN || exit 1
 
-echo "#################### Update Ramdisk ####################"
+nice -n 10 make -j${NR_CPUS} ARCH=arm CROSS_COMPILE=$TOOLCHAIN zImage || exit 1
 
-rm -f $KERNELDIR/Xtreme-Mega/tar/$KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar
-rm -f $KERNELDIR/Xtreme-Mega/tar/boot.img
-rm -f $KERNELDIR/Xtreme-Mega/zip/$KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.zip
-rm -f $KERNELDIR/Xtreme-Mega/zip/boot.img
+nice -n 10 make -j${NR_CPUS} ARCH=arm CROSS_COMPILE=$TOOLCHAIN modules || exit 1
 
-rm -rf $RAMFS_TMP
-rm -rf $RAMFS_TMP.cpio
-rm -rf $RAMFS_TMP.cpio.gz
+echo "#################### Update initrd ####################"
+
+if [ -d $INITRAMFS_TMP ]; then
+	rm -rf $INITRAMFS_TMP
+	rm -rf $INITRAMFS_TMPcpio
+	rm -rf $INITRAMFS_TMPcpio.gz
+else
+	mkdir $INITRAMFS_TMP
+	chown root:root $INITRAMFS_TMP
+	chmod 777 $INITRAMFS_TMP
+fi;
+
 rm -rf $KERNELDIR/*.cpio
 rm -rf $KERNELDIR/*.cpio.gz
-cd $RAMFS_SOURCE
-cp -ax $RAMFS_SOURCE $RAMFS_TMP
-cp $MODULES/* $RAMFS_TMP/lib/modules
-find $RAMFS_TMP -name .git -exec rm -rf {} \;
-find $RAMFS_TMP -name EMPTY_DIRECTORY -exec rm -rf {} \;
-find $RAMFS_TMP -name .EMPTY_DIRECTORY -exec rm -rf {} \;
-rm -rf $RAMFS_TMP/tmp/*
-rm -rf $RAMFS_TMP/.hg
-chmod 644 $RAMFS_TMP/lib/modules/*
-echo "#################### Build Ramdisk ####################"
+cp -ax $RAMFS_SOURCE $INITRAMFS_TMP
+mkdir -p $INITRAMFS_TMP/lib/modules
 
-cd $RAMFS_TMP
-find . | fakeroot cpio -o -H newc > $RAMFS_TMP.cpio 2>/dev/null
-ls -lh $RAMFS_TMP.cpio
-gzip -9 -f $RAMFS_TMP.cpio
+find $INITRAMFS_TMP -name .git -exec rm -rf {} \;
 
-echo "#################### Compilar Kernel ####################"
+# remove empty directory placeholders from ramfs_tmp
+find $INITRAMFS_TMP -name EMPTY_DIRECTORY -exec rm -rf {} \;
+find $INITRAMFS_TMP -name .EMPTY_DIRECTORY -exec rm -rf {} \;
+rm -rf $INITRAMFS_TMP/tmp/*
+rm -rf $INITRAMFS_TMP/.hg
 
-cd $KERNELDIR
+# copiando mudules personales
+cp $MODULES/* $INITRAMFS_TMP/lib/modules
 
-nice -n 10 make -j${NR_CPUS} ARCH=arm CROSS_COMPILE=$TOOLCHAIN zImage || exit 1
+# copy modules into tmp-initramfs
+#find . -type f -iname "*.ko" | while read line; do
+#	${TOOLCHAIN}strip --strip-unneeded "$line"
+#	cp "$line" "$INITRAMFS_TMP/lib/modules/;"
+#done
+
+chmod 755 $INITRAMFS_TMP/lib/modules/*
+
+# copiando binario busybox completo
+#cp $BUSYBOX/* $INITRAMFS_TMP/sbin
+#chmod 750 $INITRAMFS_TMP/sbin/*
+
+echo "#################### Build initrd ####################"
+
+cd $INITRAMFS_TMP
+find . | fakeroot cpio -o -H newc > $INITRAMFS_TMP.cpio 2>/dev/null
+ls -lh $INITRAMFS_TMP.cpio
+gzip -9 -f $INITRAMFS_TMP.cpio
 
 echo "#################### Generar boot.img ####################"
 
-./mkbootimg --kernel $KERNELDIR/arch/arm/boot/zImage --ramdisk $RAMFS_TMP.cpio.gz --board smdk4x12 --base 0x10000000 --pagesize 2048 --ramdiskaddr 0x11000000 -o $KERNELDIR/boot.img
+cd $KERNELDIR
+./mkbootimg --kernel $KERNELDIR/arch/arm/boot/zImage --ramdisk $INITRAMFS_TMP.cpio.gz --board smdk4x12 --base 0x10000000 --pagesize 2048 --ramdiskaddr 0x11000000 -o $KERNELDIR/boot.img
 
 echo "#################### Preparando flasheables ####################"
 
-cp boot.img $KERNELDIR/Xtreme-Mega/zip
-cp boot.img $KERNELDIR/Xtreme-Mega/tar
+# eliminando flasheables antiguos
+rm -f $XTREME/tar/*.tar
+rm -f $XTREME/md5/*.md5
+rm -f $XTREME/zip/*.zip
 
-cd $KERNELDIR
-cd Xtreme-Mega/zip
-zip -9 -r $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.zip *
-cd ..
-cd tar
+# copiando boot.img a ruta de flasheables
+cp boot.img $XTREME/zip
+cp boot.img $XTREME/tar
+cp boot.img $XTREME/md5
+
+# comprimiendo en formato zip
+cd $XTREME/zip
+zip -ry -9 "$KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.zip" . -x "*.zip"
+
+# comprimiendo en formato tar
+cd ../tar
 tar cf $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar boot.img && ls -lh $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar
 
+# comprimiendo en formato tar.md5
+cd ../md5
+tar -H ustar -c boot.img > $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar
+md5sum -t $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar >> $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar
+mv $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar $KERNEL_VERSION-$REVISION$KBUILD_BUILD_VERSION.tar.md5
+cd ../..
+
 echo "#################### Eliminando restos ####################"
-find -name '*.ko' -exec rm -rf {} \;
-rm -rf $KERNELDIR/Xtreme-Mega/zip/boot.img
-rm -rf $KERNELDIR/Xtreme-Mega/tar/boot.img
+
+# remove all old modules before compile
+find "$KERNELDIR" -type f -iname "*.ko" | while read line; do
+	rm -f "$line"
+done
+
+# remover all old compilaciones
+rm -f $XTREME/zip/boot.img
+rm -f $XTREME/tar/boot.img
+rm -f $XTREME/md5/boot.img
 rm -f $KERNELDIR/arch/arm/boot/*.dtb
 rm -f $KERNELDIR/arch/arm/boot/*.cmd
 rm -rf $KERNELDIR/arch/arm/boot/Image
 rm -rf $KERNELDIR/arch/arm/boot/zImage
-rm $KERNELDIR/boot.img
-rm $KERNELDIR/zImage
-rm -rf $RAMFS_TMP/*
+rm -f $KERNELDIR/boot.img
+rm -rf $INITRAMFS_TMP/*
+cd $INITRAMFS_TMP
+cd ..
+rm ramfs-source-sgs3.cpio.gz
 rm /home/rogod/Kernel/tmp/ramfs-source-sgs3.cpio.gz
 
 echo "#################### Terminado ####################"
