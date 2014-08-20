@@ -3,8 +3,8 @@
 # Script Zipalign
 #
 
+export PATH="/res/ext:${PATH}"
 BUSY="/sbin/busybox"
-BUSY="/system/xbin/busybox"
 LOG_FILE=/data/zipalign.log;
 ZIPALIGNDB=/data/zipalign.db;
 
@@ -42,4 +42,3 @@ done;
 $BUSY mount -o ro,remount /system;
 touch $ZIPALIGNDB;
 echo "Automatic ZipAlign finished at $( date +"%m-%d-%Y %H:%M:%S" )" | tee -a $LOG_FILE;
-

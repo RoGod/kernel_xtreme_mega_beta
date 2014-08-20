@@ -1,12 +1,10 @@
 #!/sbin/busybox sh
 #
 
-export PATH="/res/ext:${PATH}";
+export PATH="/res/ext:${PATH}"
 BUSY="/sbin/busybox"
-BUSY="/system/xbin/busybox"
 
-(
-	if [ "$(pgrep -f "database_optimizing" |  wc -l)" -le "5" ]; then
+	if [ "$(pgrep -f "database_optimizing.sh" |  wc -l)" -le "5" ]; then
 
 		for i in `$BUSY find /data -iname "*.db"`; do
 			/sbin/sqlite3 $i 'VACUUM;';
@@ -18,4 +16,3 @@ BUSY="/system/xbin/busybox"
 			/sbin/sqlite3 $i 'REINDEX;';
 		done;
 	fi;
-)&
