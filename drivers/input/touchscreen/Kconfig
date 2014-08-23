@@ -1109,4 +1109,7 @@ source "drivers/input/touchscreen/wacom/Kconfig"
 
 source "drivers/input/touchscreen/rmi4/Kconfig"
 
+config TOUCHSCREEN_SWEEP2WAKE
+        tristate "Sweep2Wake for touchscreens"
+        default n
 endif
