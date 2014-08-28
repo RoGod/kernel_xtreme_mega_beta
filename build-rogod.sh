@@ -42,8 +42,8 @@ MODULES="/home/rogod/Kernel/modules"
 INITRAMFS_TMP="/home/rogod/Kernel/tmp/ramfs-source-sgs3"
 TOOLCHAIN="/home/rogod/android-ndk-r8e/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/bin/arm-linux-androideabi-"
 export KERNEL_VERSION="Xtreme-Mega"
-export REVISION="Estable"
-export KBUILD_BUILD_VERSION="v1"
+export REVISION="V"
+export KBUILD_BUILD_VERSION="1"
 
 echo "#################### Verificando rutas ####################"
 
