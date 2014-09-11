@@ -53,6 +53,10 @@
 #include <plat/s5p-sysmmu.h>
 #endif
 
+#ifdef CONFIG_XTREME_SPLASH_LOGO
+#include "logo_xtreme.c"
+#endif
+ 
 #if defined(CONFIG_S6D7AA0_LSL080AL02)
 static unsigned int fb_busfreq_table[S3C_FB_MAX_WIN + 1] = {
 	100100,
@@ -146,6 +150,10 @@ int s3cfb_draw_logo(struct fb_info *fb)
 		printk(KERN_INFO "Bootloader sent 'bootloaderfb' : %08X\n", bootloaderfb);
 	}
 
+#ifdef CONFIG_XTREME_SPLASH_LOGO
+	memcpy(fb->screen_base, gimp_image.pixel_data, fb->var.yres * fb->fix.line_length);
+ #endif
+ 
 #endif /* #ifdef RGB_BOOTSCREEN */
 #endif
 #endif

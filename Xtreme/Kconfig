@@ -1,0 +1,9 @@
+menu "Xtreme settings"
+
+comment "Core features"
+
+config XTREME_SPLASH_LOGO
+	bool "Enable Xtreme's splash logo"
+	help
+		This option shows Xtreme splash logo right after the kernel is loaded.
+endmenu

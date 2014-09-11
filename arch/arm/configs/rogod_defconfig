@@ -32,6 +32,11 @@ CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 CONFIG_HAVE_IRQ_WORK=y
 
 #
+# Core features
+#
+CONFIG_XTREME_SPLASH_LOGO=y
+
+#
 # General setup
 #
 CONFIG_EXPERIMENTAL=y
